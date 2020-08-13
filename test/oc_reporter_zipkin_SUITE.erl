@@ -41,7 +41,7 @@ zipkin_reporter(_Config) ->
 
     meck:new(httpc),
     meck:expect(httpc, request,
-                fun (post, {"http://ct-host:9411/endpoint", [], "application/json", Content}, [], []) ->
+                fun (post, {"http://ct-host:9411/endpoint", [{"X-SF-TOKEN", ""}], "application/json", Content}, [], []) ->
                         Self ! {ok, Content},
                         {ok, {{ok, 202, ok}, ok, ok}};
                     (_, _, _, _)  ->

@@ -32,6 +32,7 @@
 
 -define(DEFAULT_ZIPKIN_ADDRESS, "http://localhost:9411/api/v2/spans").
 -define(DEFAULT_LOCAL_ENDPOINT, #{<<"serviceName">> => node()}).
+-define(DEFAULT_SIGNAL_FX_TOKEN, "").
 
 -export([init/1,
          report/2]).
@@ -39,14 +40,15 @@
 init(Opts) ->
     Address = zipkin_address(Opts),
     LocalEndpoint = local_endpoint(Opts),
-    {Address, LocalEndpoint}.
+    SFToken = sf_token(Opts),
+    {Address, LocalEndpoint, SFToken}.
 
-report(Spans, {Address, LocalEndpoint}) ->
+report(Spans, {Address, LocalEndpoint, SFToken}) ->
     ZSpans = [zipkin_span(Span, LocalEndpoint) || Span <- Spans],
 
     try jsx:encode(ZSpans) of
         JSON ->
-            case httpc:request(post, {Address, [], "application/json", JSON}, [], []) of
+            case httpc:request(post, {Address, [{"X-SF-TOKEN", SFToken}], "application/json", JSON}, [], []) of
                 {ok, {{_, 202, _}, _, _}} ->
                     ok;
                 {ok, {{_, 200, _}, _, _}} ->
@@ -144,6 +146,9 @@ zipkin_address(Options) ->
 
 local_endpoint(Options) ->
     proplists:get_value(local_endpoint, Options, ?DEFAULT_LOCAL_ENDPOINT).
+
+sf_token(Options) ->
+    proplists:get_value(signal_fx_token, Options, ?DEFAULT_SIGNAL_FX_TOKEN).
 
 optional_fields(Span) ->
     lists:foldl(fun(Field, Acc) ->

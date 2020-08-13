@@ -9,7 +9,14 @@ To use, add `opencensus_zipkin` dependency as a runtime application (in rebar3 t
 ``` erlang
 {opencensus, [
     {reporters, [{oc_reporter_zipkin, [{address, "http://localhost:9411/api/v2/spans"},
+                                       {signal_fx_token, "SIGNAL_FX_TOKEN"},
                                        {local_endpoint, #{<<"serviceName">> => <<"service">>}]}}]}
     ...]}
 ```
+
+## Running tests
+
+Need to have rebar3 installed.
+
+`$ rebar3 ct`
 
